@@ -1,8 +1,9 @@
-import { ManagerAgentAction } from "@/core/agents/manager-agent/manager-agent.types";
+import * as crypto from 'crypto';
+import { ManagerAgentAction } from '@/core/agents/manager-agent/manager-agent.types';
 
-export type TaskStatus = "pending" | "completed" | "failed" | "cancelled";
+export type TaskStatus = 'pending' | 'completed' | 'failed' | 'cancelled';
 
-export type TaskActionStatus = "pending" | "completed" | "cancelled" | "failed";
+export type TaskActionStatus = 'pending' | 'completed' | 'cancelled' | 'failed';
 
 export class TaskAction {
   public readonly id: string;
@@ -11,7 +12,7 @@ export class TaskAction {
 
   constructor(public readonly data: ManagerAgentAction) {
     this.id = crypto.randomUUID();
-    this._status = "pending";
+    this._status = 'pending';
     this.data = data;
   }
 
@@ -20,16 +21,16 @@ export class TaskAction {
   }
 
   complete() {
-    this._status = "completed";
+    this._status = 'completed';
   }
 
   cancel(reason: string) {
-    this._status = "cancelled";
+    this._status = 'cancelled';
     this._reason = reason;
   }
 
   fail(reason: string) {
-    this._status = "failed";
+    this._status = 'failed';
     this._reason = reason;
   }
 
@@ -57,7 +58,7 @@ export class Task {
   static InitPending(goal: string, actions: ManagerAgentAction[]) {
     const taskActions = actions.map((action) => new TaskAction(action));
 
-    return new Task(crypto.randomUUID(), goal, taskActions, "pending");
+    return new Task(crypto.randomUUID(), goal, taskActions, 'pending');
   }
 
   get status() {
@@ -69,7 +70,7 @@ export class Task {
   }
 
   get pendingActions() {
-    return this.actions.filter((action) => action.status === "pending");
+    return this.actions.filter((action) => action.status === 'pending');
   }
 
   get nextPendingAction(): TaskAction | null {
@@ -80,7 +81,7 @@ export class Task {
     const action = this.actions.find((action) => action.id === id);
 
     if (!action) {
-      throw new Error("Action not found");
+      throw new Error('Action not found');
     }
 
     action.complete();
@@ -98,7 +99,7 @@ export class Task {
     const action = this.actions.find((action) => action.id === id);
 
     if (!action) {
-      throw new Error("Action not found");
+      throw new Error('Action not found');
     }
 
     action.cancel(reason);
@@ -106,16 +107,16 @@ export class Task {
   }
 
   complete() {
-    this._status = "completed";
+    this._status = 'completed';
   }
 
   cancel(reason: string) {
-    this._status = "cancelled";
+    this._status = 'cancelled';
     this._reason = reason;
   }
 
   fail(reason: string) {
-    this._status = "failed";
+    this._status = 'failed';
     this._reason = reason;
   }
 

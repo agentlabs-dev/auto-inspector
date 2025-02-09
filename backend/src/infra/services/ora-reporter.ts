@@ -1,5 +1,5 @@
-import ora from "ora-classic";
-import { AgentReporter } from "@/core/interfaces/agent-reporter.interface";
+import * as ora from 'ora-classic';
+import { AgentReporter } from '@/core/interfaces/agent-reporter.interface';
 
 export class OraReporter implements AgentReporter {
   private spinner: ora.Ora | undefined;
@@ -15,14 +15,14 @@ export class OraReporter implements AgentReporter {
 
   success(message: string): void {
     this.getSpinner().stopAndPersist({
-      symbol: "✅",
+      symbol: '✅',
       text: message,
     });
   }
 
   failure(message: string): void {
     this.getSpinner().stopAndPersist({
-      symbol: "❌",
+      symbol: '❌',
       text: message,
     });
   }
@@ -34,7 +34,7 @@ export class OraReporter implements AgentReporter {
 
   info(message: string): void {
     this.spinner?.stopAndPersist({
-      symbol: "💡",
+      symbol: '💡',
       text: message,
     });
   }

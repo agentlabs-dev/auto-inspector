@@ -1,7 +1,7 @@
-import { Page } from "playwright";
-import { Browser } from "@/core/interfaces/browser.interface";
-import { Screenshotter } from "@/core/interfaces/screenshotter.interface";
-import crypto from "crypto";
+import { Page } from 'playwright';
+import { Browser } from '@/core/interfaces/browser.interface';
+import { Screenshotter } from '@/core/interfaces/screenshotter.interface';
+import * as crypto from 'crypto';
 
 declare global {
   interface Window {
@@ -15,7 +15,7 @@ export type Coordinates = {
 };
 
 export type TextNode = {
-  type: "TEXT_NODE";
+  type: 'TEXT_NODE';
   text: string;
   isVisible: boolean;
 };
@@ -23,7 +23,7 @@ export type TextNode = {
 const isElementNode = (node: DomNode | null): node is ElementNode => {
   if (!node) return false;
 
-  return !("type" in node) || node.type !== "TEXT_NODE";
+  return !('type' in node) || node.type !== 'TEXT_NODE';
 };
 
 export type ElementNode = {
@@ -43,27 +43,27 @@ export type ElementNode = {
 };
 
 const IMPORTANT_ATTRIBUTES = [
-  "id",
-  "name",
-  "value",
-  "placeholder",
-  "aria-label",
-  "role",
-  "for",
-  "href",
-  "alt",
-  "title",
-  "data-testid",
-  "data-test",
-  "data-test-id",
-  "data-test-name",
-  "data-test-value",
+  'id',
+  'name',
+  'value',
+  'placeholder',
+  'aria-label',
+  'role',
+  'for',
+  'href',
+  'alt',
+  'title',
+  'data-testid',
+  'data-test',
+  'data-test-id',
+  'data-test-name',
+  'data-test-value',
 ];
 
 export type DomNode = TextNode | ElementNode;
 
 export const isTextNode = (node: DomNode): node is TextNode => {
-  return "type" in node && node.type === "TEXT_NODE";
+  return 'type' in node && node.type === 'TEXT_NODE';
 };
 
 export interface SerializedDomState {
@@ -100,7 +100,7 @@ export class DomService {
 
       if (node.highlightIndex) {
         // [2]__<div></div>
-        const str = `[${node.isInteractive ? node.highlightIndex : ""}]__<${node.tagName}>`;
+        const str = `[${node.isInteractive ? node.highlightIndex : ''}]__<${node.tagName}>`;
 
         items.push(str);
       }
@@ -114,17 +114,17 @@ export class DomService {
 
     format(nodeState);
 
-    return items.join("\n");
+    return items.join('\n');
   }
 
   private hashDomState(domState: DomNode | null) {
     if (!domState) {
-      return "";
+      return '';
     }
 
     const domStateString = this.stringifyDomStateForHash(domState);
 
-    return crypto.createHash("sha256").update(domStateString).digest("hex");
+    return crypto.createHash('sha256').update(domStateString).digest('hex');
   }
 
   getIndexSelector(index: number): Coordinates | null {
@@ -197,11 +197,11 @@ export class DomService {
       const attributes = Object.entries(node.attributes)
         .filter(([key]) => IMPORTANT_ATTRIBUTES.includes(key))
         .map(([key, value]) => `${key}="${value}"`)
-        .join(" ");
+        .join(' ');
 
       if (node.highlightIndex) {
         // [2]__<div optional-attributes>Hello</div>
-        const str = `[${node.isInteractive ? node.highlightIndex : ""}]__<${node.tagName} ${attributes}>${node.text}</${node.tagName}>`;
+        const str = `[${node.isInteractive ? node.highlightIndex : ''}]__<${node.tagName} ${attributes}>${node.text}</${node.tagName}>`;
 
         items.push(str);
       }
@@ -215,7 +215,7 @@ export class DomService {
 
     format(nodeState);
 
-    return items.join("\n");
+    return items.join('\n');
   }
 
   async resetHighlightElements() {
@@ -224,7 +224,7 @@ export class DomService {
       try {
         // Remove the highlight container and all its contents
         const container = document.getElementById(
-          "playwright-highlight-container",
+          'playwright-highlight-container',
         );
         if (container) {
           container.remove();
@@ -235,18 +235,18 @@ export class DomService {
           '[magic-inspector-highlight-id^="playwright-highlight-"]',
         );
         highlightedElements.forEach((el) => {
-          el.removeAttribute("magic-inspector-highlight-id");
+          el.removeAttribute('magic-inspector-highlight-id');
         });
       } catch (e) {
-        console.error("Failed to remove highlights:", e);
+        console.error('Failed to remove highlights:', e);
       }
     });
   }
 
-  async highlightElementWheel(direction: "down" | "up") {
+  async highlightElementWheel(direction: 'down' | 'up') {
     const page = await this.browserService.getStablePage();
-    await page.evaluate((direction: "down" | "up") => {
-      console.log("highlightElementWheel", direction);
+    await page.evaluate((direction: 'down' | 'up') => {
+      console.log('highlightElementWheel', direction);
     }, direction);
   }
 
@@ -256,31 +256,31 @@ export class DomService {
       try {
         // Create or get highlight container
         let container = document.getElementById(
-          "playwright-pointer-highlight-container",
+          'playwright-pointer-highlight-container',
         );
         if (!container) {
-          container = document.createElement("div");
-          container.id = "playwright-pointer-highlight-container";
-          container.style.position = "fixed";
-          container.style.pointerEvents = "none";
-          container.style.top = "0";
-          container.style.left = "0";
-          container.style.width = "100%";
-          container.style.height = "100%";
-          container.style.zIndex = "2147483647"; // Maximum z-index value
+          container = document.createElement('div');
+          container.id = 'playwright-pointer-highlight-container';
+          container.style.position = 'fixed';
+          container.style.pointerEvents = 'none';
+          container.style.top = '0';
+          container.style.left = '0';
+          container.style.width = '100%';
+          container.style.height = '100%';
+          container.style.zIndex = '2147483647'; // Maximum z-index value
           document.body.appendChild(container);
         }
 
         // Create the red circle
-        const circle = document.createElement("div");
-        circle.style.position = "absolute";
-        circle.style.width = "20px";
-        circle.style.height = "20px";
-        circle.style.borderRadius = "50%";
-        circle.style.backgroundColor = "red";
+        const circle = document.createElement('div');
+        circle.style.position = 'absolute';
+        circle.style.width = '20px';
+        circle.style.height = '20px';
+        circle.style.borderRadius = '50%';
+        circle.style.backgroundColor = 'red';
         circle.style.left = `${coordinates.x - 10}px`; // Center the circle
         circle.style.top = `${coordinates.y - 10}px`; // Center the circle
-        circle.style.pointerEvents = "none"; // Ensure it doesn't interfere with clicking
+        circle.style.pointerEvents = 'none'; // Ensure it doesn't interfere with clicking
 
         container.appendChild(circle);
 
@@ -289,7 +289,7 @@ export class DomService {
           container.remove();
         }, 2000);
       } catch (e) {
-        console.error("Failed to draw highlight circle:", e);
+        console.error('Failed to draw highlight circle:', e);
       }
     }, coordinates);
   }
@@ -327,34 +327,34 @@ export class DomService {
           }
 
           let container = document.getElementById(
-            "playwright-highlight-container",
+            'playwright-highlight-container',
           );
           if (!container) {
-            container = document.createElement("div");
-            container.id = "playwright-highlight-container";
-            container.style.position = "absolute";
-            container.style.pointerEvents = "none";
-            container.style.top = "0";
-            container.style.left = "0";
-            container.style.width = "100%";
-            container.style.height = "100%";
-            container.style.zIndex = "2147483647";
+            container = document.createElement('div');
+            container.id = 'playwright-highlight-container';
+            container.style.position = 'absolute';
+            container.style.pointerEvents = 'none';
+            container.style.top = '0';
+            container.style.left = '0';
+            container.style.width = '100%';
+            container.style.height = '100%';
+            container.style.zIndex = '2147483647';
             document.body.appendChild(container);
           }
 
           const colors = [
-            "#FF0000",
-            "#00FF00",
-            "#0000FF",
-            "#FFA500",
-            "#800080",
-            "#008080",
-            "#FF69B4",
-            "#4B0082",
-            "#FF4500",
-            "#2E8B57",
-            "#DC143C",
-            "#4682B4",
+            '#FF0000',
+            '#00FF00',
+            '#0000FF',
+            '#FFA500',
+            '#800080',
+            '#008080',
+            '#FF69B4',
+            '#4B0082',
+            '#FF4500',
+            '#2E8B57',
+            '#DC143C',
+            '#4682B4',
           ];
           const colorIndex = index % colors.length;
           const baseColor = colors[colorIndex];
@@ -362,12 +362,12 @@ export class DomService {
           const backgroundColor = `${baseColor}1A`;
 
           // Create highlight overlay
-          const overlay = document.createElement("div");
-          overlay.style.position = "absolute";
+          const overlay = document.createElement('div');
+          overlay.style.position = 'absolute';
           overlay.style.border = `2px solid ${baseColor}`;
           overlay.style.backgroundColor = backgroundColor;
-          overlay.style.pointerEvents = "none";
-          overlay.style.boxSizing = "border-box";
+          overlay.style.pointerEvents = 'none';
+          overlay.style.boxSizing = 'border-box';
 
           // Position overlay based on element, including scroll position
           const rect = element.getBoundingClientRect();
@@ -387,13 +387,13 @@ export class DomService {
           overlay.style.height = `${rect.height}px`;
 
           // Create label
-          const label = document.createElement("div");
-          label.className = "playwright-highlight-label";
-          label.style.position = "absolute";
+          const label = document.createElement('div');
+          label.className = 'playwright-highlight-label';
+          label.style.position = 'absolute';
           label.style.background = `${baseColor}`;
-          label.style.color = "white";
-          label.style.padding = "1px 4px";
-          label.style.borderRadius = "4px";
+          label.style.color = 'white';
+          label.style.padding = '1px 4px';
+          label.style.borderRadius = '4px';
           label.style.fontSize = `${Math.min(12, Math.max(8, rect.height / 2))}px`; // Responsive font size
           label.textContent = `[${index}]`;
 
@@ -421,7 +421,7 @@ export class DomService {
 
           // Store reference for cleanup
           element.setAttribute(
-            "magic-inspector-highlight-id",
+            'magic-inspector-highlight-id',
             `playwright-highlight-${index}`,
           );
 
@@ -458,87 +458,87 @@ export class DomService {
             }
 
             const tagName = currentElement.nodeName.toLowerCase();
-            const xpathIndex = index > 0 ? `[${index + 1}]` : "";
+            const xpathIndex = index > 0 ? `[${index + 1}]` : '';
             segments.unshift(`${tagName}${xpathIndex}`);
 
             // @ts-ignore // TODO: fix this type issue
             currentElement = currentElement.parentNode;
           }
 
-          return segments.join("/");
+          return segments.join('/');
         }
 
         function isElementAccepted(element: Element) {
           const leafElementDenyList = new Set([
-            "svg",
-            "script",
-            "style",
-            "link",
-            "meta",
+            'svg',
+            'script',
+            'style',
+            'link',
+            'meta',
           ]);
           return !leafElementDenyList.has(element.tagName.toLowerCase());
         }
 
         function isInteractiveElement(element: HTMLElement) {
           const interactiveElements = new Set([
-            "a",
-            "button",
-            "details",
-            "embed",
-            "input",
-            "label",
-            "menu",
-            "menuitem",
-            "object",
-            "select",
-            "textarea",
-            "summary",
+            'a',
+            'button',
+            'details',
+            'embed',
+            'input',
+            'label',
+            'menu',
+            'menuitem',
+            'object',
+            'select',
+            'textarea',
+            'summary',
           ]);
 
           const interactiveRoles = new Set([
-            "button",
-            "menu",
-            "menuitem",
-            "link",
-            "checkbox",
-            "radio",
-            "slider",
-            "tab",
-            "tabpanel",
-            "textbox",
-            "combobox",
-            "grid",
-            "listbox",
-            "option",
-            "progressbar",
-            "scrollbar",
-            "searchbox",
-            "switch",
-            "tree",
-            "treeitem",
-            "spinbutton",
-            "tooltip",
-            "a-button-inner",
-            "a-dropdown-button",
-            "click",
-            "menuitemcheckbox",
-            "menuitemradio",
-            "a-button-text",
-            "button-text",
-            "button-icon",
-            "button-icon-only",
-            "button-text-icon-only",
-            "dropdown",
-            "combobox",
+            'button',
+            'menu',
+            'menuitem',
+            'link',
+            'checkbox',
+            'radio',
+            'slider',
+            'tab',
+            'tabpanel',
+            'textbox',
+            'combobox',
+            'grid',
+            'listbox',
+            'option',
+            'progressbar',
+            'scrollbar',
+            'searchbox',
+            'switch',
+            'tree',
+            'treeitem',
+            'spinbutton',
+            'tooltip',
+            'a-button-inner',
+            'a-dropdown-button',
+            'click',
+            'menuitemcheckbox',
+            'menuitemradio',
+            'a-button-text',
+            'button-text',
+            'button-icon',
+            'button-icon-only',
+            'button-text-icon-only',
+            'dropdown',
+            'combobox',
           ]);
 
           const tagName = element.tagName.toLowerCase();
-          const role = element.getAttribute("role") ?? "";
-          const ariaRole = element.getAttribute("aria-role") ?? "";
-          const tabIndex = element.getAttribute("tabindex") ?? "";
+          const role = element.getAttribute('role') ?? '';
+          const ariaRole = element.getAttribute('aria-role') ?? '';
+          const tabIndex = element.getAttribute('tabindex') ?? '';
 
           const hasAddressInputClass = element.classList.contains(
-            "address-input__container__input",
+            'address-input__container__input',
           );
 
           // Basic role/attribute checks
@@ -547,18 +547,18 @@ export class DomService {
             interactiveElements.has(tagName) ||
             interactiveRoles.has(role) ||
             interactiveRoles.has(ariaRole) ||
-            (tabIndex !== null && tabIndex !== "-1") ||
-            element.getAttribute("data-action") === "a-dropdown-select" ||
-            element.getAttribute("data-action") === "a-dropdown-button";
+            (tabIndex !== null && tabIndex !== '-1') ||
+            element.getAttribute('data-action') === 'a-dropdown-select' ||
+            element.getAttribute('data-action') === 'a-dropdown-button';
 
           if (hasInteractiveRole) return true;
 
           const hasClickHandler =
             element.onclick !== null ||
-            element.getAttribute("onclick") !== null ||
-            element.hasAttribute("ng-click") ||
-            element.hasAttribute("@click") ||
-            element.hasAttribute("v-on:click");
+            element.getAttribute('onclick') !== null ||
+            element.hasAttribute('ng-click') ||
+            element.hasAttribute('@click') ||
+            element.hasAttribute('v-on:click');
 
           function getEventListeners(el: Element) {
             try {
@@ -567,15 +567,15 @@ export class DomService {
               const listeners = {};
 
               const eventTypes = [
-                "click",
-                "mousedown",
-                "mouseup",
-                "touchstart",
-                "touchend",
-                "keydown",
-                "keyup",
-                "focus",
-                "blur",
+                'click',
+                'mousedown',
+                'mouseup',
+                'touchstart',
+                'touchend',
+                'keydown',
+                'keyup',
+                'focus',
+                'blur',
               ];
 
               for (const type of eventTypes) {
@@ -608,14 +608,14 @@ export class DomService {
 
           // Check for ARIA properties that suggest interactivity
           const hasAriaProps =
-            element.hasAttribute("aria-expanded") ||
-            element.hasAttribute("aria-pressed") ||
-            element.hasAttribute("aria-selected") ||
-            element.hasAttribute("aria-checked");
+            element.hasAttribute('aria-expanded') ||
+            element.hasAttribute('aria-pressed') ||
+            element.hasAttribute('aria-selected') ||
+            element.hasAttribute('aria-checked');
 
           // Check if element is draggable
           const isDraggable =
-            element.draggable || element.getAttribute("draggable") === "true";
+            element.draggable || element.getAttribute('draggable') === 'true';
 
           return (
             hasAriaProps || hasClickHandler || hasClickListeners || isDraggable
@@ -627,8 +627,8 @@ export class DomService {
           return (
             element.offsetWidth > 0 &&
             element.offsetHeight > 0 &&
-            style.visibility !== "hidden" &&
-            style.display !== "none"
+            style.visibility !== 'hidden' &&
+            style.display !== 'none'
           );
         }
 
@@ -779,11 +779,11 @@ export class DomService {
 
           // Special case for text nodes
           if (node.nodeType === Node.TEXT_NODE) {
-            const textContent = node.textContent?.trim() ?? "";
+            const textContent = node.textContent?.trim() ?? '';
 
             if (textContent && isTextNodeVisible(node)) {
               return {
-                type: "TEXT_NODE",
+                type: 'TEXT_NODE',
                 text: textContent,
                 isVisible: true,
               };
@@ -811,7 +811,7 @@ export class DomService {
               nodeData.attributes = {};
             }
             for (const name of attributeNames) {
-              nodeData.attributes[name] = node.getAttribute(name) ?? "";
+              nodeData.attributes[name] = node.getAttribute(name) ?? '';
             }
           }
 
@@ -824,7 +824,7 @@ export class DomService {
             nodeData.isInteractive = isInteractive;
             nodeData.isVisible = isVisible;
             nodeData.isTopElement = isTop;
-            nodeData.text = "";
+            nodeData.text = '';
             nodeData.coordinates = coordinates;
 
             if (isInteractive && isVisible && isTop) {
@@ -859,7 +859,7 @@ export class DomService {
           }
 
           // Handle iframes
-          if (node.tagName === "IFRAME") {
+          if (node.tagName === 'IFRAME') {
             try {
               const iframeDoc =
                 (node as HTMLIFrameElement).contentDocument ||
@@ -874,7 +874,7 @@ export class DomService {
                 nodeData.children?.push(...iframeChildren);
               }
             } catch (e) {
-              console.warn("Unable to access iframe:", node);
+              console.warn('Unable to access iframe:', node);
             }
           } else {
             const children = Array.from(node.childNodes).map((child) =>
@@ -893,7 +893,7 @@ export class DomService {
 
       return domState;
     } catch (error: unknown) {
-      console.log("error", error);
+      console.log('error', error);
       return null;
     }
   }
