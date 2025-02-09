@@ -1,0 +1,11 @@
+FROM mcr.microsoft.com/playwright:v1.50.1-noble as dev
+
+WORKDIR /app
+
+VOLUME [ "/app" ]
+
+EXPOSE 3000
+
+RUN npx playwright install chromium
+
+ENTRYPOINT [ "sh", "-c", "npm install && npm run start:dev" ]

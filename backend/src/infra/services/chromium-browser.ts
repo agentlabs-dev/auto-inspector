@@ -1,6 +1,6 @@
-import { VariableString } from "@/core/entities/variable-string";
-import { Browser } from "@/core/interfaces/browser.interface";
-import { BrowserContext, Page, chromium } from "playwright";
+import { VariableString } from '@/core/entities/variable-string';
+import { Browser } from '@/core/interfaces/browser.interface';
+import { BrowserContext, Page, chromium } from 'playwright';
 
 export type Coordinates = {
   x: number;
@@ -31,7 +31,7 @@ export class ChromiumBrowser implements Browser {
   }
 
   private async waitForDomContentLoaded() {
-    await this.getPage().waitForLoadState("domcontentloaded");
+    await this.getPage().waitForLoadState('domcontentloaded');
   }
 
   private async waitMinimumPageLoadTime() {
@@ -55,7 +55,7 @@ export class ChromiumBrowser implements Browser {
 
   getPage(): Page {
     if (!this.page) {
-      throw new Error("The page is not initialized or has been detroyed.");
+      throw new Error('The page is not initialized or has been detroyed.');
     }
     return this.page;
   }
