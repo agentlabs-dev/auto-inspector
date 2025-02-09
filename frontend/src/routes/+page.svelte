@@ -1,4 +1,5 @@
 <script lang="ts">
+	import VncPlayer from "$lib/components/vnc/VNCPlayer.svelte";
 	import { triggerTestRun } from "../services/backend-service";
 
     let userStory = '';
@@ -7,7 +8,7 @@
 
     const generate = () => {
         console.log('generate');
-        triggerTestRun(userStory, 'https://google.com');
+        triggerTestRun('https://google.com', userStory);
     }
 
     const placeholder = `As a user on Amazon, when I search for "laptop", I should see a list of laptops.`;
@@ -18,6 +19,7 @@
     <div class="h-full w-3xl mx-auto flex flex-col justify-between">
         <div class="flex flex-col">
 
+            <VncPlayer />
         </div>
 
         <div class="flex flex-col space-y-5 py-10">        
