@@ -1,12 +1,11 @@
 {
   "compilerOptions": {
     "module": "CommonJS",
-    "target": "ES2020",
+    "target": "ES2021",
     "outDir": "dist",
     "rootDir": "src",
     "strict": true,
     "allowJs": true,
-    "allowImportingTsExtensions": true,
     "declaration": true,
     "resolveJsonModule": true,
     "sourceMap": true,
