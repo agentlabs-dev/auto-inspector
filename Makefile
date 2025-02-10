@@ -12,6 +12,9 @@ up:
 dev-up:
 	docker-compose -f docker-compose.dev.yml up --build --force-recreate
 
+dev-upd:
+	docker-compose -f docker-compose.dev.yml up --build --force-recreate -d
+
 down:
 	docker-compose down
 

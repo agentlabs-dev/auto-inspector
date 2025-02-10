@@ -1,13 +1,24 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import RunningSpinner from "../RunningSpinner.svelte";
 
-  export let sessionUrl: string;
-  export let password: string;
+  let {
+    sessionUrl,
+    password,
+    onDisconnect,
+    onConnect,
+  } = $props<{
+    sessionUrl: string;
+    password: string;
+    onDisconnect: () => void;
+    onConnect: () => void;
+  }>();
+
+  let status = $state<'connecting' | 'connected' | 'disconnected'>('connecting');
 
   let vncContainer: HTMLDivElement | null = null;
   let RFB: any;
   let rfb: any; // Store the RFB connection object
-  let status: 'connected' | 'connecting' | 'disconnected' = 'connecting';
 
   onMount(async () => {
     if (typeof window !== "undefined") {
@@ -29,16 +40,16 @@
         console.log("Setting background color to white", rfb);
         (rfb as any).background = "#fff"; // Set background color
 
-        status = 'connecting';
-
         // Debugging: Listen for connection events
         (rfb as any).addEventListener("connect", () => {
           console.log("✅ VNC Connected!");
           status = 'connected';
+          onConnect();
         });
         (rfb as any).addEventListener("disconnect", (e: any) => {
           console.log("❌ VNC Disconnected!", e);
           status = 'disconnected';
+          onDisconnect();
         });
 
       } catch (error) {
@@ -71,7 +82,25 @@
   }
 </style>
 
-<div class="aspect-ratio-box">
-  <div bind:this={vncContainer} class="vnc-container bg-white border border-gray-200 rounded-lg flex flex-col items-center justify-center">
+<div class="flex flex-col w-full space-y-4">
+  <div class="aspect-ratio-box rounded-lg border border-gray-200 shadow-sm">
+    <div bind:this={vncContainer} class="vnc-container bg-white overflow-hidden flex flex-col items-center justify-center">
+    </div>
+  </div>
+  
+  <div class="flex flex-col items-center justify-center gap-4">  
+  
+    {#if status === 'connecting'}
+      <RunningSpinner />
+    {/if}
+  
+    {#if status === 'connected'}
+      <button class="flex justify-center items-center bg-gray-900 h-15 w-15 rounded-full cursor-pointer hover:bg-gray-800" onclick={disconnect}>
+        <svg class="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <rect x="2" y="2" width="20" height="20" fill="currentColor" rx="5" ry="5"></rect>
+        </svg>
+      </button>
+    {/if}
+    
   </div>
 </div>
