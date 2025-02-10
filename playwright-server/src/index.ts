@@ -1,4 +1,4 @@
-import { chromium } from 'playwright';
+import { chromium } from 'playwright-core';
 
 (async () => {
   // Launch the Playwright browser server on port 9222 with a visible display
@@ -10,4 +10,4 @@ import { chromium } from 'playwright';
   console.log(`Playwright server started. WS endpoint: ${browserServer.wsEndpoint()}`);
   // Keep the process running
   await new Promise(() => {});
-})(); 
+})();

@@ -1,28 +1,15 @@
-FROM node:22-alpine AS build-stage
+FROM node:20-alpine AS dev
 
 WORKDIR /app
 
-COPY package*.json ./
+# Install only Node dependencies for your backend
+COPY package.json package-lock.json ./
 RUN npm install
 
+# Copy backend application
 COPY . .
-RUN npm run build
 
-# Stage 2: Production Image
-FROM node:22-alpine
-WORKDIR /app
+EXPOSE 3000
 
-# Install only production dependencies
-COPY package*.json ./
-
-RUN npm install --only=production
-
-# Mandatory to run the worker thread
-RUN npm install ts-node
-
-# Copy built files from the build stage
-COPY --from=build-stage /app/dist ./dist
-
-ENV NODE_ENV=production
-
-CMD ["node", "dist/interfaces/api/main.js"] 
+# Updated CMD to only start the backend server
+CMD npm run start:dev

@@ -99,7 +99,7 @@ echo OPENAI_API_KEY="<replace-with-your-key>" >> .env
 #### Run the web application
 
 ```bash
-make dev-up
+make up
 ```
 
 This command will start the web application at `http://localhost`.
