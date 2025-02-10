@@ -7,6 +7,9 @@ watch:
 	docker-compose up
 
 up:
+	docker-compose up
+
+upd:
 	docker-compose up -d
 
 dev-up:

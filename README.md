@@ -102,6 +102,13 @@ echo OPENAI_API_KEY="<replace-with-your-key>" >> .env
 make up
 ```
 
+or to run in detached mode
+
+```bash
+make upd
+make logs
+```
+
 This command will start the web application at `http://localhost`.
 
 
