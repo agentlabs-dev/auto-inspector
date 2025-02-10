@@ -6,9 +6,18 @@
 
     $: hasUserStory = userStory.length > 0;
 
-    const generate = () => {
+    let sessionUrl: string | null = null;
+    let password: string | null = null;
+
+    /**
+     * This is a POC, we'll improve that later.
+     */
+    const generate = async () => {
         console.log('generate');
-        triggerTestRun('https://google.com', userStory);
+        const result = await triggerTestRun('https://google.com', userStory);
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        sessionUrl = result.sessionUrl;
+        password = result.password;
     }
 
     const placeholder = `As a user on Amazon, when I search for "laptop", I should see a list of laptops.`;
@@ -18,8 +27,9 @@
 
     <div class="h-full w-3xl mx-auto flex flex-col justify-between">
         <div class="flex flex-col">
-
-            <VncPlayer />
+            {#if sessionUrl && password}
+                <VncPlayer sessionUrl={sessionUrl} password={password} />
+            {/if}
         </div>
 
         <div class="flex flex-col space-y-5 py-10">        

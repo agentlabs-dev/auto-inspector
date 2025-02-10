@@ -11,10 +11,14 @@ export class JobsController {
   async runTest(@Body() body: RunTestDto) {
     const runTestCase = new RunTestCase();
 
-    console.log('body', body);
+    /**
+     * This is a POC, we'll improve that later.
+     */
+    runTestCase.execute(body.startUrl, body.userStory).catch((error) => {
+      console.error(error);
+      throw error;
+    });
 
-    const result = await runTestCase.execute(body.startUrl, body.userStory);
-
-    return result;
+    return { sessionUrl: `ws://localhost:6080/websockify`, password: 'secret' };
   }
 }

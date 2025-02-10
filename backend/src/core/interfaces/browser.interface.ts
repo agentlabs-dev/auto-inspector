@@ -1,5 +1,5 @@
-import { Page } from "playwright";
-import { VariableString } from "../entities/variable-string";
+import { Page } from 'playwright';
+import { VariableString } from '../entities/variable-string';
 
 export type Coordinates = {
   x: number;
@@ -7,6 +7,7 @@ export type Coordinates = {
 };
 
 export interface Browser {
+  close(): Promise<void>;
   launch(url: string): Promise<void>;
   getStablePage(): Promise<Page>;
   getPage(): Page;

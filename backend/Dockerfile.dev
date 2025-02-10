@@ -1,36 +1,15 @@
-FROM mcr.microsoft.com/playwright:v1.50.1-noble as dev
+FROM node:20-alpine as dev
 
 WORKDIR /app
 
-# Install dependencies for VNC, Xvfb, and noVNC
-RUN apt-get update && apt-get install -y \
-    x11vnc \
-    xvfb \
-    xfce4 \
-    xterm \
-    curl \
-    novnc \
-    websockify \
-    && rm -rf /var/lib/apt/lists/*
-
-# Set up VNC password
-RUN mkdir -p ~/.vnc && echo "secret" | x11vnc -storepasswd secret ~/.vnc/passwd && chmod 600 ~/.vnc/passwd
-
-# Copy package.json and install dependencies
+# Install only Node dependencies for your backend
 COPY package.json package-lock.json ./
 RUN npm install
 
-# Copy the entire application
+# Copy backend application
 COPY . .
 
-# Expose ports for backend (3000), VNC (5900), and noVNC Web UI (6080)
-EXPOSE 3000 5900 6080
+EXPOSE 3000
 
-# Set display environment
-ENV DISPLAY=:99
-
-# Start Xvfb (Virtual Display), x11vnc (VNC Server), and noVNC (Web VNC)
-CMD Xvfb :99 -screen 0 1920x1080x24 & \
-    x11vnc -forever -usepw -create -display :99 & \
-    websockify --web=/usr/share/novnc/ --cert=none 6080 localhost:5900 & \
-    npm run start:dev
+# Updated CMD to only start the backend server
+CMD npm run start:dev

@@ -68,7 +68,7 @@ https://github.com/user-attachments/assets/7873f6a8-89d5-4234-8a17-0d993f5dc5c7
 
 ```bash
 git clone https://github.com/magic-inspector/auto-inspector.git
-cd auto-inspector/auto-inspector
+cd auto-inspector/backend
 
 npm install
 ```

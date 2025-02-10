@@ -1,6 +1,11 @@
 import { VariableString } from '@/core/entities/variable-string';
 import { Browser } from '@/core/interfaces/browser.interface';
-import { BrowserContext, Page, chromium } from 'playwright';
+import {
+  Browser as PBrowser,
+  BrowserContext,
+  Page,
+  chromium,
+} from 'playwright';
 
 export type Coordinates = {
   x: number;
@@ -16,18 +21,35 @@ export class ChromiumBrowser implements Browser {
   constructor() {}
 
   async launch(url: string) {
-    const browser = await chromium.launch({
-      headless: false,
-    });
+    const wsEndpoint = process.env.PLAYWRIGHT_WS_ENDPOINT ?? null;
+
+    let browser: PBrowser;
+
+    /**
+     * If the wsEndpoint is provided, we connect to the browser using the Playwright
+     * WebSocket endpoint.
+     * This is used in the docker-compose file where the playwright-server is running in a dedicated container.
+     */
+    if (wsEndpoint) {
+      browser = await chromium.connect(wsEndpoint);
+    } else {
+      browser = await chromium.launch({
+        headless: false,
+      });
+    }
+
     this.context = await browser.newContext({
+      screen: {
+        width: 1920,
+        height: 1080,
+      },
       viewport: {
-        width: 1440,
-        height: 900,
+        width: 1900,
+        height: 1040,
       },
     });
-
     this.page = await this.context.newPage();
-    await this.getPage()!.goto(url);
+    await this.page.goto(url);
   }
 
   private async waitForDomContentLoaded() {
@@ -49,8 +71,13 @@ export class ChromiumBrowser implements Browser {
 
   async getStablePage(): Promise<Page> {
     await this.waitForStability();
-
     return this.getPage();
+  }
+
+  async close() {
+    if (this.context) {
+      this.context.close();
+    }
   }
 
   getPage(): Page {
