@@ -34,3 +34,6 @@ logs-backend:
 
 logs-frontend:
 	docker-compose logs -f frontend
+
+prune-all:
+	docker system prune -a --volumes

@@ -1,9 +1,19 @@
 import * as crypto from 'crypto';
 import { ManagerAgentAction } from '@/core/agents/manager-agent/manager-agent.types';
 
-export type TaskStatus = 'pending' | 'completed' | 'failed' | 'cancelled';
+export type TaskStatus =
+  | 'pending'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'inProgress';
 
-export type TaskActionStatus = 'pending' | 'completed' | 'cancelled' | 'failed';
+export type TaskActionStatus =
+  | 'pending'
+  | 'completed'
+  | 'cancelled'
+  | 'failed'
+  | 'inProgress';
 
 export class TaskAction {
   public readonly id: string;
@@ -18,6 +28,10 @@ export class TaskAction {
 
   get status() {
     return this._status;
+  }
+
+  start() {
+    this._status = 'inProgress';
   }
 
   complete() {
@@ -104,6 +118,10 @@ export class Task {
 
     action.cancel(reason);
     this.cancel(reason);
+  }
+
+  start() {
+    this._status = 'inProgress';
   }
 
   complete() {

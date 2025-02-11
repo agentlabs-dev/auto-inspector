@@ -43,7 +43,10 @@
 		"vitest": "^3.0.0"
 	},
 	"dependencies": {
+		"@iconify/svelte": "^4.2.0",
 		"dotenv": "^16.4.7",
-		"novnc-core": "^0.3.0"
+		"iconify-icon": "^2.3.0",
+		"novnc-core": "^0.3.0",
+		"socket.io-client": "^4.8.1"
 	}
 }

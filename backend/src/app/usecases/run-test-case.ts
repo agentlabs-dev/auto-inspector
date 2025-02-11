@@ -12,6 +12,7 @@ import {
 } from '@/core/agents/manager-agent/manager-agent.config';
 import { OraReporter } from '@/infra/services/ora-reporter';
 import { Variable } from '@/core/entities/variable';
+import { EventBus, RealtimeReporter } from '@/core/services/realtime-reporter';
 
 export class RunTestCase {
   async execute(startUrl: string, initialPrompt: string) {
@@ -27,6 +28,20 @@ export class RunTestCase {
       screenshotService,
       new OraReporter('Evaluation Agent'),
     );
+
+    const eventBus = new EventBus();
+
+    eventBus.on('action:update', (action) => {
+      console.log('action:update', action);
+    });
+
+    eventBus.on('task:update', (task) => {
+      console.log('task:update', task);
+    });
+
+    eventBus.on('run:update', (run) => {
+      console.log('run:update', run);
+    });
 
     const managerAgent = new ManagerAgent({
       variables: [
@@ -49,6 +64,7 @@ export class RunTestCase {
       evaluator: evaluationAgent,
       maxActionsPerTask: DEFAULT_AGENT_MAX_ACTIONS_PER_TASK,
       maxRetries: DEFAULT_AGENT_MAX_RETRIES,
+      eventBus,
     });
 
     const result = await managerAgent.launch(startUrl, initialPrompt);

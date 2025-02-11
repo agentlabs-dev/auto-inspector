@@ -1,23 +1,29 @@
-import { TaskManagerService } from "@/core/services/task-manager-service";
-import { JsonOutputParser } from "@langchain/core/output_parsers";
+import { TaskManagerService } from '@/core/services/task-manager-service';
+import { JsonOutputParser } from '@langchain/core/output_parsers';
 import {
   ManagerAgentPrompt,
   ManagerAgentHumanPrompt,
-} from "./manager-agent.prompt";
-import { DomService } from "@/infra/services/dom-service";
+} from './manager-agent.prompt';
+import { DomService } from '@/infra/services/dom-service';
 import {
   DEFAULT_AGENT_MAX_ACTIONS_PER_TASK,
   DEFAULT_AGENT_MAX_RETRIES,
-} from "./manager-agent.config";
-import { ManagerAgentAction, ManagerResponse } from "./manager-agent.types";
-import { Browser, Coordinates } from "@/core/interfaces/browser.interface";
-import { EvaluationAgent } from "../evaluation-agent/evaluation-agent";
-import { Task, TaskAction } from "@/core/entities/task";
-import { LLM } from "@/core/interfaces/llm.interface";
-import { TestResult } from "@/core/entities/test-result";
-import { AgentReporter } from "@/core/interfaces/agent-reporter.interface";
-import { Variable } from "@/core/entities/variable";
-import { VariableString } from "@/core/entities/variable-string";
+} from './manager-agent.config';
+import { ManagerAgentAction, ManagerResponse } from './manager-agent.types';
+import { Browser, Coordinates } from '@/core/interfaces/browser.interface';
+import { EvaluationAgent } from '../evaluation-agent/evaluation-agent';
+import { Task, TaskAction } from '@/core/entities/task';
+import { LLM } from '@/core/interfaces/llm.interface';
+import { TestResult } from '@/core/entities/test-result';
+import { AgentReporter } from '@/core/interfaces/agent-reporter.interface';
+import { Variable } from '@/core/entities/variable';
+import { VariableString } from '@/core/entities/variable-string';
+import { Run } from '@/core/entities/run';
+import { RealtimeReporter } from '@/core/services/realtime-reporter';
+import {
+  AppEvents,
+  EventBusInterface,
+} from '@/core/interfaces/event-bus.interface';
 
 export type ManagerAgentConfig = {
   maxActionsPerTask?: number;
@@ -30,6 +36,7 @@ export type ManagerAgentConfig = {
   llmService: LLM;
   evaluator: EvaluationAgent;
   reporter: AgentReporter;
+  eventBus: EventBusInterface<AppEvents>;
 };
 
 export class ManagerAgent {
@@ -37,9 +44,10 @@ export class ManagerAgent {
   private lastDomStateHash: string | null = null;
   private isSuccess: boolean = false;
   private isFailure: boolean = false;
-  private reason: string = "";
+  private reason: string = '';
   private retries: number = 0;
   private readonly variables: Variable[];
+  private currentRun: Run | null = null;
 
   private readonly maxActionsPerTask: number;
   private readonly maxRetries: number;
@@ -50,6 +58,7 @@ export class ManagerAgent {
   private readonly llmService: LLM;
   private readonly reporter: AgentReporter;
   private readonly evaluator: EvaluationAgent;
+  private readonly eventBus: EventBusInterface;
 
   constructor(config: ManagerAgentConfig) {
     this.taskManager = config.taskManager;
@@ -63,6 +72,7 @@ export class ManagerAgent {
     this.maxActionsPerTask =
       config.maxActionsPerTask ?? DEFAULT_AGENT_MAX_ACTIONS_PER_TASK;
     this.maxRetries = config.maxRetries ?? DEFAULT_AGENT_MAX_RETRIES;
+    this.eventBus = config.eventBus;
   }
 
   private onSuccess(reason: string) {
@@ -111,22 +121,26 @@ export class ManagerAgent {
 
   async run(): Promise<TestResult> {
     return new Promise(async (resolve) => {
-      this.reporter.loading("Starting manager agent");
+      this.reporter.loading('Starting manager agent');
+
+      this.currentRun = Run.InitInProgress();
 
       while (!this.isCompleted) {
         if (this.retries >= this.maxRetries) {
-          this.onFailure("Max retries reached");
+          this.onFailure('Max retries reached');
 
           return resolve({
-            status: "failed",
+            status: 'failed',
             reason:
-              "Max number of retried reached. The agent was not able to complete the test.",
+              'Max number of retried reached. The agent was not able to complete the test.',
           });
         }
 
-        this.reporter.loading("Defining next task...");
+        this.reporter.loading('Defining next task...');
 
         const task = await this.defineNextTask();
+
+        this.currentRun.addTask(task);
 
         this.reporter.loading(`Executing task: ${task.goal}`);
 
@@ -138,7 +152,7 @@ export class ManagerAgent {
        */
       if (this.isFailure) {
         return resolve({
-          status: "failed",
+          status: 'failed',
           reason: this.reason,
         });
       }
@@ -181,7 +195,7 @@ export class ManagerAgent {
 
     return actions.filter(
       (action) =>
-        action.name !== "triggerSuccess" && action.name !== "triggerFailure",
+        action.name !== 'triggerSuccess' && action.name !== 'triggerFailure',
     );
   }
 
@@ -225,21 +239,31 @@ export class ManagerAgent {
 
       return task;
     } catch (error) {
-      console.error("Error parsing agent response:", error);
-      return Task.InitPending("Keep trying", []);
+      console.error('Error parsing agent response:', error);
+      return Task.InitPending('Keep trying', []);
     }
   }
 
+  debugRun() {
+    console.log('this.currentRun', JSON.stringify(this.currentRun, null, 2));
+  }
+
   async executeTask(task: Task) {
+    task.start();
+
+    this.debugRun();
+
     await this.domService.resetHighlightElements();
 
     for (const [i, action] of task.actions.entries()) {
       try {
+        action.start();
+
         if (i > 0 && (await this.didDomStateChange())) {
-          action.cancel("Dom state changed, need to reevaluate.");
-          task.cancel("Dom state changed, need to reevaluate.");
+          action.cancel('Dom state changed, need to reevaluate.');
+          task.cancel('Dom state changed, need to reevaluate.');
           this.taskManager.update(task);
-          this.reporter.info("Dom state changed, need to reevaluate.");
+          this.reporter.info('Dom state changed, need to reevaluate.');
           return;
         }
 
@@ -256,10 +280,10 @@ export class ManagerAgent {
         this.resetRetries();
       } catch (error: any) {
         action.fail(
-          `Task failed with error: ${error?.message ?? "Unknown error"}`,
+          `Task failed with error: ${error?.message ?? 'Unknown error'}`,
         );
         task.fail(
-          `Task failed with error: ${error?.message ?? "Unknown error"}`,
+          `Task failed with error: ${error?.message ?? 'Unknown error'}`,
         );
 
         this.taskManager.update(task);
@@ -278,13 +302,13 @@ export class ManagerAgent {
     await this.beforeAction(action);
 
     switch (action.data.name) {
-      case "clickElement":
+      case 'clickElement':
         coordinates = this.domService.getIndexSelector(
           action.data.params.index,
         );
 
         if (!coordinates) {
-          throw new Error("Index or coordinates not found");
+          throw new Error('Index or coordinates not found');
         }
 
         await this.domService.resetHighlightElements();
@@ -297,13 +321,13 @@ export class ManagerAgent {
 
         break;
 
-      case "fillInput":
+      case 'fillInput':
         coordinates = this.domService.getIndexSelector(
           action.data.params.index,
         );
 
         if (!coordinates) {
-          throw new Error("Index or coordinates not found");
+          throw new Error('Index or coordinates not found');
         }
 
         await this.domService.highlightElementPointer(coordinates);
@@ -317,35 +341,35 @@ export class ManagerAgent {
 
         break;
 
-      case "scrollDown":
+      case 'scrollDown':
         await this.browserService.scrollDown();
         await this.domService.resetHighlightElements();
-        await this.domService.highlightElementWheel("down");
+        await this.domService.highlightElementWheel('down');
 
         break;
 
-      case "scrollUp":
+      case 'scrollUp':
         await this.browserService.scrollUp();
 
         await this.domService.resetHighlightElements();
-        await this.domService.highlightElementWheel("up");
+        await this.domService.highlightElementWheel('up');
 
         break;
 
-      case "takeScreenshot":
+      case 'takeScreenshot':
         await this.domService.resetHighlightElements();
         await this.domService.highlightForSoM();
         break;
 
-      case "goToUrl":
+      case 'goToUrl':
         await this.browserService.goToUrl(action.data.params.url);
         break;
 
-      case "triggerSuccess":
+      case 'triggerSuccess':
         this.onSuccess(action.data.params.reason);
         break;
 
-      case "triggerFailure":
+      case 'triggerFailure':
         this.onFailure(action.data.params.reason);
         break;
     }

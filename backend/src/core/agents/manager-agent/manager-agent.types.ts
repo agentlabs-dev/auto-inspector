@@ -1,10 +1,10 @@
-import { z } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
+import { z } from 'zod';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 export const ManagerAgentActionSchema = z
   .union([
     z.object({
-      name: z.literal("clickElement"),
+      name: z.literal('clickElement'),
       params: z.object({
         index: z.number(),
       }),
@@ -15,7 +15,7 @@ export const ManagerAgentActionSchema = z
         ),
     }),
     z.object({
-      name: z.literal("fillInput"),
+      name: z.literal('fillInput'),
       params: z.object({
         index: z.number(),
         text: z.string(),
@@ -27,7 +27,7 @@ export const ManagerAgentActionSchema = z
         ),
     }),
     z.object({
-      name: z.literal("scrollDown"),
+      name: z.literal('scrollDown'),
       description: z
         .string()
         .describe(
@@ -36,7 +36,7 @@ export const ManagerAgentActionSchema = z
       params: z.null(),
     }),
     z.object({
-      name: z.literal("scrollUp"),
+      name: z.literal('scrollUp'),
       description: z
         .string()
         .describe(
@@ -45,7 +45,7 @@ export const ManagerAgentActionSchema = z
       params: z.null(),
     }),
     z.object({
-      name: z.literal("goToUrl"),
+      name: z.literal('goToUrl'),
       params: z.object({
         url: z.string(),
       }),
@@ -56,7 +56,7 @@ export const ManagerAgentActionSchema = z
         ),
     }),
     z.object({
-      name: z.literal("takeScreenshot"),
+      name: z.literal('takeScreenshot'),
       description: z
         .string()
         .describe(
@@ -66,18 +66,18 @@ export const ManagerAgentActionSchema = z
     }),
     z
       .object({
-        name: z.literal("triggerSuccess"),
+        name: z.literal('triggerSuccess'),
         params: z.object({
           reason: z.string(),
         }),
         description: z.null(),
       })
       .describe(
-        "Trigger success means you have completed the user story and we can ask the evaluator to evaluate the test result.",
+        'Trigger success means you have completed the user story and we can ask the evaluator to evaluate the test result.',
       ),
     z
       .object({
-        name: z.literal("triggerFailure"),
+        name: z.literal('triggerFailure'),
         params: z.object({
           reason: z.string(),
         }),
@@ -105,7 +105,7 @@ export const ManagerAgentResponseSchema = z.object({
 export type ManagerResponse = z.infer<typeof ManagerAgentResponseSchema>;
 
 export const JsonifiedManagerResponseSchema = JSON.stringify(
-  zodToJsonSchema(ManagerAgentResponseSchema, "ExpectedResponseFormat"),
+  zodToJsonSchema(ManagerAgentResponseSchema, 'ExpectedResponseFormat'),
 );
 
 export const ManagerResponseExamples = `
