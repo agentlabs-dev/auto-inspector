@@ -1,3 +1,3 @@
-<div class="border border-gray-200 rounded-xl p-1 shadow-medium bg-white">
+<div class="overflow-hidden border border-gray-200 rounded-xl shadow-medium bg-white w-full">
   <slot />
 </div>

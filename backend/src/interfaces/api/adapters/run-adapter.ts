@@ -7,6 +7,8 @@ export class RunAdapter {
       id: run.id,
       status: run.status,
       tasks: run.tasks.map((task) => TaskAdapter.toFrontend(task)),
+      brainState: run.brainState,
+      resultReason: run.resultReason,
     };
   }
 }

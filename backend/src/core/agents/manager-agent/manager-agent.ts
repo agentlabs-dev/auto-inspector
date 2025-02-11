@@ -19,11 +19,7 @@ import { AgentReporter } from '@/core/interfaces/agent-reporter.interface';
 import { Variable } from '@/core/entities/variable';
 import { VariableString } from '@/core/entities/variable-string';
 import { Run } from '@/core/entities/run';
-import { RealtimeReporter } from '@/core/services/realtime-reporter';
-import {
-  AppEvents,
-  EventBusInterface,
-} from '@/core/interfaces/event-bus.interface';
+import { EventBusInterface } from '@/core/interfaces/event-bus.interface';
 
 export type ManagerAgentConfig = {
   maxActionsPerTask?: number;
@@ -36,7 +32,7 @@ export type ManagerAgentConfig = {
   llmService: LLM;
   evaluator: EvaluationAgent;
   reporter: AgentReporter;
-  eventBus: EventBusInterface<AppEvents>;
+  eventBus: EventBusInterface;
 };
 
 export class ManagerAgent {
@@ -119,11 +115,16 @@ export class ManagerAgent {
     return this.run();
   }
 
+  private async emitRunUpdate() {
+    this.eventBus.emit('run:update', this.currentRun);
+  }
+
   async run(): Promise<TestResult> {
     return new Promise(async (resolve) => {
       this.reporter.loading('Starting manager agent');
 
-      this.currentRun = Run.InitInProgress();
+      this.currentRun = Run.InitRunning();
+      this.emitRunUpdate();
 
       while (!this.isCompleted) {
         if (this.retries >= this.maxRetries) {
@@ -141,6 +142,9 @@ export class ManagerAgent {
         const task = await this.defineNextTask();
 
         this.currentRun.addTask(task);
+        this.currentRun.executeAction();
+
+        this.emitRunUpdate();
 
         this.reporter.loading(`Executing task: ${task.goal}`);
 
@@ -151,6 +155,9 @@ export class ManagerAgent {
        * If the Manager Agent failed, then we return the failure reason immediately.
        */
       if (this.isFailure) {
+        this.currentRun.setFailure(this.reason);
+        this.emitRunUpdate();
+
         return resolve({
           status: 'failed',
           reason: this.reason,
@@ -166,6 +173,14 @@ export class ManagerAgent {
         this.taskManager.getSerializedTasks(),
         this.taskManager.getEndGoal(),
       );
+
+      if (status === 'passed') {
+        this.currentRun.setSuccess(reason);
+      } else {
+        this.currentRun.setFailure(reason);
+      }
+
+      this.emitRunUpdate();
 
       return resolve({
         status,
@@ -200,6 +215,9 @@ export class ManagerAgent {
   }
 
   async defineNextTask(): Promise<Task> {
+    this.currentRun.think();
+    this.emitRunUpdate();
+
     const parser = new JsonOutputParser<ManagerResponse>();
 
     const systemMessage = new ManagerAgentPrompt(
@@ -258,6 +276,7 @@ export class ManagerAgent {
     for (const [i, action] of task.actions.entries()) {
       try {
         action.start();
+        this.emitRunUpdate();
 
         if (i > 0 && (await this.didDomStateChange())) {
           action.cancel('Dom state changed, need to reevaluate.');
@@ -269,15 +288,16 @@ export class ManagerAgent {
 
         await this.executeAction(action);
         action.complete();
+        this.emitRunUpdate();
 
         await new Promise((resolve) =>
           setTimeout(resolve, this.msDelayBetweenActions),
         );
 
         task.complete();
-        this.taskManager.update(task);
-
+        this.emitRunUpdate();
         this.resetRetries();
+        this.taskManager.update(task);
       } catch (error: any) {
         action.fail(
           `Task failed with error: ${error?.message ?? 'Unknown error'}`,
@@ -288,6 +308,7 @@ export class ManagerAgent {
 
         this.taskManager.update(task);
         this.incrementRetries();
+        this.emitRunUpdate();
       }
     }
 
@@ -300,6 +321,8 @@ export class ManagerAgent {
     let coordinates: Coordinates | null = null;
 
     await this.beforeAction(action);
+
+    this.emitRunUpdate();
 
     switch (action.data.name) {
       case 'clickElement':
@@ -375,5 +398,6 @@ export class ManagerAgent {
     }
 
     await this.afterAction(action);
+    this.emitRunUpdate();
   }
 }

@@ -1,8 +1,8 @@
 <script lang="ts">
   import Icon from '@iconify/svelte';
 
-  type Action = 'fillInput' | 'clickElement'
-  type Status = 'pending' | 'completed' | 'cancelled' | 'failed' | 'inProgress';
+  type Action = 'fillInput' | 'clickElement' | 'goToUrl' | 'triggerSuccess' | 'triggerFailure';
+  type Status = 'pending' | 'completed' | 'cancelled' | 'failed' | 'running';
 
   export let action: Action;
   export let status: Status;
@@ -18,19 +18,31 @@
     clickElement: {
       label: 'Click element',
       icon: 'mdi:cursor-default-click'
+    },
+    goToUrl: {
+      label: 'Navigate to URL',
+      icon: 'mdi:link'
+    },
+    triggerSuccess: {
+      label: 'Ask for evaluation',
+      icon: 'mdi:check'
+    },
+    triggerFailure: {
+      label: 'Ask for evaluation',
+      icon: 'mdi:close'
     }
   }
 
   const statusColor: Record<Status, string> = {
     pending: 'text-gray-200',
     completed: 'text-green-500',
-    cancelled: 'text-orange-500',
-    failed: 'text-red-500',
-    inProgress: 'text-blue-500 animate-pulse'
+    cancelled: 'text-gray-200',
+    failed: 'text-orange-500',
+    running: 'text-blue-500 animate-pulse'
   }
 
   const actionItem = actionItems[action];
-  const color = statusColor[status] || 'text-gray-400';
+  $: color = statusColor[status] || 'text-gray-400';
 </script>
 
 <div class="flex items-center gap-2 justify-between w-full">

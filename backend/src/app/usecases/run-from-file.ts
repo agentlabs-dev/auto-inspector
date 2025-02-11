@@ -13,6 +13,7 @@ import {
 import { OraReporter } from '@/infra/services/ora-reporter';
 import * as fs from 'fs/promises';
 import { Variable } from '@/core/entities/variable';
+import { EventBus } from '@/core/services/realtime-reporter';
 
 interface TestCase {
   start_url: string;
@@ -90,6 +91,7 @@ export class RunFromFile {
         llmService: llm,
         maxActionsPerTask: DEFAULT_AGENT_MAX_ACTIONS_PER_TASK,
         maxRetries: DEFAULT_AGENT_MAX_RETRIES,
+        eventBus: new EventBus(),
       });
 
       const result = await managerAgent.launch(startUrl, userStory);

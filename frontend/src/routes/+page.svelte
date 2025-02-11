@@ -5,6 +5,7 @@
     import {subscribeToRunUpdates, currentRunStore} from "$lib/stores/run";
     import RunGraph from "$lib/components/run-graph/RunGraph.svelte";
 	import type { Run } from "$lib/entities/run";
+	import RunResultNode from "$lib/components/run-graph/RunResultNode.svelte";
     let isLoading = $state(false);
     let sessionUrl = $state<string | null>(null);
     let password = $state<string | null>(null);
@@ -18,6 +19,8 @@
 
         sessionUrl = result.sessionUrl;
         password = result.password;
+
+        subscribeToRunUpdates();
     }
 
     const resetSession = () => {
@@ -25,24 +28,19 @@
         password = null;
         isLoading = false;
     }
-
-    const subscribe = () => {
-        subscribeToRunUpdates();
-    }    
 </script>
 
-<div class="min-h-screen flex flex-col items-center justify-center">
-    <button on:click={subscribe}>Subscribe</button>
-
-    <div class="w-[500px] h-[1000px]">
-        {#if $currentRunStore}
-            <RunGraph run={$currentRunStore} />
-        {/if}
-    </div>
+<div class="min-h-screen flex flex-col gap-4">
     {#if sessionUrl && password}
-        <div class="w-4xl flex items-center justify-center">
-            <VncPlayer sessionUrl={sessionUrl} password={password} onDisconnect={resetSession} onConnect={() => {}}/>
-        </div>        
+    <div class="flex flex-row min-h-full">
+        <div class="min-w-[500px] flex flex-col justify-start items-center shrink-0 bg-[url('/images/bg-dotted.png')] p-4 overflow-y-auto h-full border-r border-gray-200">
+            <RunGraph run={$currentRunStore} />
+        </div>
+        <div class="flex flex-col justify-center items-center p-4 bg-white grow">
+            <VncPlayer sessionUrl={sessionUrl} password={password} onDisconnect={resetSession} onConnect={() => {}}/>              
+        </div>
+    </div>            
+
     {:else}
         <TestBuilder onTriggerRun={generate}/>    
     {/if}

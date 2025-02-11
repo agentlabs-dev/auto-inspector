@@ -6,14 +6,14 @@ export type TaskStatus =
   | 'completed'
   | 'failed'
   | 'cancelled'
-  | 'inProgress';
+  | 'running';
 
 export type TaskActionStatus =
   | 'pending'
   | 'completed'
   | 'cancelled'
   | 'failed'
-  | 'inProgress';
+  | 'running';
 
 export class TaskAction {
   public readonly id: string;
@@ -31,7 +31,7 @@ export class TaskAction {
   }
 
   start() {
-    this._status = 'inProgress';
+    this._status = 'running';
   }
 
   complete() {
@@ -121,7 +121,7 @@ export class Task {
   }
 
   start() {
-    this._status = 'inProgress';
+    this._status = 'running';
   }
 
   complete() {

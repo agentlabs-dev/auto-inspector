@@ -12,10 +12,10 @@ import {
 } from '@/core/agents/manager-agent/manager-agent.config';
 import { OraReporter } from '@/infra/services/ora-reporter';
 import { Variable } from '@/core/entities/variable';
-import { EventBus, RealtimeReporter } from '@/core/services/realtime-reporter';
+import { EventBus } from '@/core/services/realtime-reporter';
 
 export class RunTestCase {
-  async execute(startUrl: string, initialPrompt: string) {
+  async execute(startUrl: string, initialPrompt: string, eventBus: EventBus) {
     const fileSystem = new InMemoryFileSystem();
     const screenshotService = new PlaywrightScreenshoter(fileSystem);
     const browser = new ChromiumBrowser();
@@ -28,20 +28,6 @@ export class RunTestCase {
       screenshotService,
       new OraReporter('Evaluation Agent'),
     );
-
-    const eventBus = new EventBus();
-
-    eventBus.on('action:update', (action) => {
-      console.log('action:update', action);
-    });
-
-    eventBus.on('task:update', (task) => {
-      console.log('task:update', task);
-    });
-
-    eventBus.on('run:update', (run) => {
-      console.log('run:update', run);
-    });
 
     const managerAgent = new ManagerAgent({
       variables: [

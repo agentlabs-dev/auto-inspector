@@ -6,4 +6,6 @@ export type Run = {
 	progress: number;
 	message: string;
 	tasks: Task[];
+	brainState: 'thinking' | 'executingAction';
+	resultReason: string;
 };
